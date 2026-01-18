@@ -1,3 +1,28 @@
+// ==UserScript==
+// @name         YouTube ADHD Blocker
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Deletes YouTube recommendations and non-pinned comments during specified hours
+// @match        *://*.youtube.com/*
+// @run-at       document-idle
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @version     1.0
+// @author      RSB
+// @description 1/18/2026, 12:00:21 PM
+// ==/UserScript==
+
+function main() {
+    const startHour = 0;
+    const endHour = -1;
+    const now = new Date();
+    const hour = now.getHours();
+
+    if (isWithinCurfew(hour, startHour, endHour)) {
+        blockAll();
+    }
+}
+
 /**
  * Removes YouTube video recommendations from the page.
  * Hides the secondary sidebar and removes specific recommendation elements.
@@ -11,24 +36,25 @@ function removeRecommendations() {
 
     // Also target specific recommendation containers if they exist
     const recommendations = document.querySelectorAll(
-        'ytd-watch-next-secondary-results-renderer, ytd-compact-video-renderer'
+        'ytd-watch-next-secondary-results-renderer, ytd-compact-video-renderer',
     );
     recommendations.forEach(el => el.remove());
 
+    // Remove the home recommendations grid
     const home = document.querySelectorAll(
-        'ytd-rich-grid-renderer, yt-horizontal-list-renderer'
+        'ytd-rich-grid-renderer, yt-horizontal-list-renderer',
     );
     home.forEach(el => el.remove());
 }
 
 /**
- * Removes the notification button in the top right corner.
+ * Removes the notifications button in the top right corner.
  */
-function removeNotificationButton() {
-    const notificationButton = document.querySelector(
-        'ytd-notification-topbar-button-renderer'
+function removeNotificationsButton() {
+    const notificationsButton = document.querySelector(
+        'ytd-notification-topbar-button-renderer',
     );
-    if (notificationButton) notificationButton.remove();
+    if (notificationsButton) notificationsButton.remove();
 }
 
 /**
@@ -53,7 +79,7 @@ function markPinnedComment() {
     comments.forEach(comment => {
         // Check if the comment is pinned by looking for the pinned badge
         const pinnedBadge = comment.querySelector(
-            '[aria-label*="Pinned"], .badge-shape-wiz__text, ytd-pinned-comment-badge-renderer'
+            '[aria-label*="Pinned"], .badge-shape-wiz__text, ytd-pinned-comment-badge-renderer',
         );
         if (pinnedBadge) {
             comment.classList.add('PINNED');
@@ -73,7 +99,7 @@ function removeSubscriptions() {
         if (avatar) {
             section.remove();
             console.log(
-                'Removed subscriptions-like section via avatar detection'
+                'Removed subscriptions-like section via avatar detection',
             );
         }
     });
@@ -142,7 +168,7 @@ function blockAll(startHour, endHour) {
     reactiveCall(() => {
         redirectShortsToWatch();
         removeRecommendations();
-        removeNotificationButton();
+        removeNotificationsButton();
         markPinnedComment();
         removeSubscriptions();
     });
@@ -151,13 +177,15 @@ function blockAll(startHour, endHour) {
 /**
  * Load settings and run the check.
  */
-browser.storage.local.get(['startHour', 'endHour'], function (result) {
-    const startHour = result.startHour || 21; // Default 9 PM
-    const endHour = result.endHour || 7; // Default 7 AM
-    const now = new Date();
-    const hour = now.getHours();
+// browser.storage.local.get(['startHour', 'endHour'], function (result) {
+//     const startHour = result.startHour || 21; // Default 9 PM
+//     const endHour = result.endHour || 7; // Default 7 AM
+//     const now = new Date();
+//     const hour = now.getHours();
 
-    if (isWithinCurfew(hour, startHour, endHour)) {
-        blockAll();
-    }
-});
+//     if (isWithinCurfew(hour, startHour, endHour)) {
+//         blockAll();
+//     }
+// });
+
+main();
