@@ -39,7 +39,17 @@ function removeNonPinnedComments() {
  * Targets the specific element by index, hopes it doesn't get rearranged, and removes it.
  */
 function removeSubscriptions() {
-    document.querySelectorAll('ytd-guide-section-renderer').item(1).remove();
+    document.querySelectorAll('ytd-guide-section-renderer').forEach(section => {
+        // Look for channel avatars
+        const avatar = section.querySelector('img.yt-img-shadow[src]');
+
+        if (avatar) {
+            section.remove();
+            console.log(
+                'Removed subscriptions-like section via avatar detection'
+            );
+        }
+    });
 }
 
 /**
@@ -59,6 +69,20 @@ function isWithinCurfew(hour, start, end) {
     }
 }
 
+function redirectShortsToWatch() {
+    const match = location.pathname.match(/\/shorts\/([^/?]+)/);
+    if (!match) return;
+
+    const videoId = match[1];
+
+    const target = `https://www.youtube.com/watch?v=${videoId}`;
+
+    if (location.href !== target) {
+        console.log('Redirecting Shorts → Watch:', target);
+        location.replace(target);
+    }
+}
+
 /**
  * Calls a function and sets up a MutationObserver to re-run it on DOM changes.
  * Ensures dynamic content is handled reactively.
@@ -69,10 +93,8 @@ function reactiveCall(f) {
 
     // Set up a MutationObserver to handle dynamically loaded content
     const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.type === 'childList') {
-                f();
-            }
+        mutations.forEach(() => {
+            f();
         });
     });
 
@@ -93,6 +115,7 @@ function checkTimeAndRemove(startHour, endHour) {
 
     if (isWithinCurfew(hour, startHour, endHour)) {
         reactiveCall(() => {
+            // redirectShortsToWatch();
             removeRecommendations();
             removeNonPinnedComments();
             removeSubscriptions();
