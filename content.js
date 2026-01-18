@@ -11,9 +11,37 @@ function removeRecommendations() {
 
     // Also target specific recommendation containers if they exist
     const recommendations = document.querySelectorAll(
-        'ytd-watch-next-secondary-results-renderer, ytd-compact-video-renderer, ytd-rich-grid-renderer, yt-horizontal-list-renderer'
+        'ytd-watch-next-secondary-results-renderer, ytd-compact-video-renderer'
     );
     recommendations.forEach(el => el.remove());
+
+    const home = document.querySelectorAll(
+        'ytd-rich-grid-renderer, yt-horizontal-list-renderer'
+    );
+    home.forEach(el => el.remove());
+}
+
+/**
+ * Removes the notification button in the top right corner.
+ */
+function removeNotificationButton() {
+    const notificationButton = document.querySelector(
+        'ytd-notification-topbar-button-renderer'
+    );
+    if (notificationButton) notificationButton.remove();
+}
+
+/**
+ * Adds a custom CSS class that hides all non-PINNED comments.
+ */
+function hideComments() {
+    const style = document.createElement('style');
+    style.textContent = `
+        ytd-comment-thread-renderer:not(.PINNED) {
+            visibility: hidden !important;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 /**
@@ -68,6 +96,9 @@ function isWithinCurfew(hour, start, end) {
     }
 }
 
+/**
+ * Redirects any YouTube shorts link to the main long-form video URL.
+ */
 function redirectShortsToWatch() {
     const match = location.pathname.match(/\/shorts\/([^/?]+)/);
     if (!match) return;
@@ -104,36 +135,29 @@ function reactiveCall(f) {
 }
 
 /**
- * Checks the current time and removes recommendations and comments if within curfew.
- * @param {number} startHour - The start hour of the curfew.
- * @param {number} endHour - The end hour of the curfew.
+ * Applies all ADHD-blockers.
  */
-function checkTimeAndRemove(startHour, endHour) {
-    const now = new Date();
-    const hour = now.getHours();
-
-    if (!isWithinCurfew(hour, startHour, endHour)) {
-        return;
-    }
-    const style = document.createElement('style');
-    style.textContent = `
-        ytd-comment-thread-renderer:not(.PINNED) {
-            visibility: hidden !important;
-        }
-    `;
-    document.head.appendChild(style);
-
+function blockAll(startHour, endHour) {
+    hideComments();
     reactiveCall(() => {
         redirectShortsToWatch();
         removeRecommendations();
+        removeNotificationButton();
         markPinnedComment();
         removeSubscriptions();
     });
 }
 
-// Load settings and run the check
+/**
+ * Load settings and run the check.
+ */
 browser.storage.local.get(['startHour', 'endHour'], function (result) {
     const startHour = result.startHour || 21; // Default 9 PM
     const endHour = result.endHour || 7; // Default 7 AM
-    checkTimeAndRemove(startHour, endHour);
+    const now = new Date();
+    const hour = now.getHours();
+
+    if (isWithinCurfew(hour, startHour, endHour)) {
+        blockAll();
+    }
 });
