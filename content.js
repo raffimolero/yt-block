@@ -124,7 +124,7 @@ function checkTimeAndRemove(startHour, endHour) {
     document.head.appendChild(style);
 
     reactiveCall(() => {
-        // redirectShortsToWatch();
+        redirectShortsToWatch();
         removeRecommendations();
         markPinnedComment();
         removeSubscriptions();
