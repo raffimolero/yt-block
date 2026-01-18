@@ -12,15 +12,45 @@
 // @description 1/18/2026, 12:00:21 PM
 // ==/UserScript==
 
-function main() {
-    const startHour = 0;
-    const endHour = -1;
+async function main() {
+    registerSettingsCommands();
+
+    let startHour = await GM_getValue('startHour', 21);
+    let endHour = await GM_getValue('endHour', 7);
     const now = new Date();
     const hour = now.getHours();
 
     if (isWithinCurfew(hour, startHour, endHour)) {
         blockAll();
     }
+}
+
+async function registerSettingsCommands() {
+    GM_registerMenuCommand('Configure hours', async () => {
+        let input = prompt(
+            `Enter hours as start,end (0-23):`,
+            `${startHour},${endHour}`,
+        );
+        if (input) {
+            let [s, e] = input.split(',').map(Number);
+            if (
+                Number.isInteger(s) &&
+                Number.isInteger(e) &&
+                s >= 0 &&
+                s <= 23 &&
+                e >= 0 &&
+                e <= 23
+            ) {
+                startHour = s;
+                endHour = e;
+                await GM_setValue('startHour', s);
+                await GM_setValue('endHour', e);
+                alert(`Hours set: ${s}-${e}`);
+            } else {
+                alert('Invalid input');
+            }
+        }
+    });
 }
 
 /**
