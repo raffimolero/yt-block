@@ -25,6 +25,20 @@ async function main() {
     }
 }
 
+/**
+ * Applies all ADHD-blockers.
+ */
+function blockAll(startHour, endHour) {
+    hideComments();
+    reactiveCall(() => {
+        redirectShortsToWatch();
+        removeRecommendations();
+        removeNotificationsButton();
+        markPinnedComment();
+        removeSubscriptions();
+    });
+}
+
 async function registerSettingsCommands() {
     GM_registerMenuCommand('Configure hours', async () => {
         let input = prompt(
@@ -189,33 +203,5 @@ function reactiveCall(f) {
         subtree: true,
     });
 }
-
-/**
- * Applies all ADHD-blockers.
- */
-function blockAll(startHour, endHour) {
-    hideComments();
-    reactiveCall(() => {
-        redirectShortsToWatch();
-        removeRecommendations();
-        removeNotificationsButton();
-        markPinnedComment();
-        removeSubscriptions();
-    });
-}
-
-/**
- * Load settings and run the check.
- */
-// browser.storage.local.get(['startHour', 'endHour'], function (result) {
-//     const startHour = result.startHour || 21; // Default 9 PM
-//     const endHour = result.endHour || 7; // Default 7 AM
-//     const now = new Date();
-//     const hour = now.getHours();
-
-//     if (isWithinCurfew(hour, startHour, endHour)) {
-//         blockAll();
-//     }
-// });
 
 main();
