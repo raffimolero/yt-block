@@ -17,19 +17,18 @@ function removeRecommendations() {
 }
 
 /**
- * Removes all YouTube comments that are not pinned.
- * Checks for pinned badges and removes comment threads without them.
+ * Adds a custom CSS class to the pinned comment to make sure it is not hidden.
  */
-function removeNonPinnedComments() {
+function markPinnedComment() {
     // Target all comment threads
     const comments = document.querySelectorAll('ytd-comment-thread-renderer');
     comments.forEach(comment => {
         // Check if the comment is pinned by looking for the pinned badge
         const pinnedBadge = comment.querySelector(
-            '[aria-label*="Pinned"], .badge-shape-wiz__text'
+            '[aria-label*="Pinned"], .badge-shape-wiz__text, ytd-pinned-comment-badge-renderer'
         );
-        if (!pinnedBadge || !pinnedBadge.textContent.includes('Pinned')) {
-            comment.remove();
+        if (pinnedBadge) {
+            comment.classList.add('PINNED');
         }
     });
 }
@@ -113,14 +112,23 @@ function checkTimeAndRemove(startHour, endHour) {
     const now = new Date();
     const hour = now.getHours();
 
-    if (isWithinCurfew(hour, startHour, endHour)) {
-        reactiveCall(() => {
-            // redirectShortsToWatch();
-            removeRecommendations();
-            removeNonPinnedComments();
-            removeSubscriptions();
-        });
+    if (!isWithinCurfew(hour, startHour, endHour)) {
+        return;
     }
+    const style = document.createElement('style');
+    style.textContent = `
+        ytd-comment-thread-renderer:not(.PINNED) {
+            visibility: hidden !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    reactiveCall(() => {
+        // redirectShortsToWatch();
+        removeRecommendations();
+        markPinnedComment();
+        removeSubscriptions();
+    });
 }
 
 // Load settings and run the check
