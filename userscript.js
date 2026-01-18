@@ -15,8 +15,8 @@
 async function main() {
     registerSettingsCommands();
 
-    let startHour = await GM_getValue('startHour', 21);
-    let endHour = await GM_getValue('endHour', 7);
+    let startHour = await GM_getValue('startHour', 0);
+    let endHour = await GM_getValue('endHour', -1);
     const now = new Date();
     const hour = now.getHours();
 
